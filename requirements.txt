@@ -1,2 +1,8 @@
+filelock
+networkx
+sympy
+typing-extensions
 quart
 quart-cors
+httpx
+requests

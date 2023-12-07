@@ -2,6 +2,10 @@ import json
 
 import quart
 import quart_cors
+import httpx
+import requests
+
+
 from quart import request
 
 app = quart_cors.cors(quart.Quart(__name__), allow_origin="https://chat.openai.com")
@@ -30,6 +34,33 @@ async def delete_todo(username):
         _TODOS[username].pop(todo_idx)
     return quart.Response(response='OK', status=200)
 
+@app.get("/external_api")
+async def external_api_call():
+    host = request.headers['Host']
+    url = "https://services.odata.org/TripPinRESTierService/People"
+
+    # Make a GET request
+    response = requests.get(url)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse JSON response
+        data = response.json()
+        print(data)
+    else:
+        print("Failed to retrieve data:", response.status_code)
+        
+    # async with httpx.AsyncClient() as client:
+    #     resp = await client.get(url)
+    #     print(resp)
+    #     data = resp.json()
+    
+    #return quart.Response(data, mimetype="text/text")
+    return quart.Response(response=json.dumps(data), status=response.status_code)
+
+    # #url = "https://d2dd45bb-32b7-45c7-b7d5-1328f3781129.abap-web.us10.hana.ondemand.com/sap/opu/odata/sap/ZAPI_ODV2_C_TRAVEL_M_257/?sap-client=100"
+    # return quart.Response(response=json.dumps(data), status=resp.status_code)
+
 @app.get("/logo.png")
 async def plugin_logo():
     filename = 'logo.png'
@@ -42,7 +73,7 @@ async def plugin_manifest():
         text = f.read()
         return quart.Response(text, mimetype="text/json")
 
-@app.get("/openapi.yaml")
+app.get("/openapi.yaml")
 async def openapi_spec():
     host = request.headers['Host']
     with open("openapi.yaml") as f:
@@ -50,7 +81,7 @@ async def openapi_spec():
         return quart.Response(text, mimetype="text/yaml")
 
 def main():
-    app.run(debug=True, host="0.0.0.0", port=5003)
+    app.run(debug=True, host="0.0.0.0", port=5012)
 
 if __name__ == "__main__":
     main()
